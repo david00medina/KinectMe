@@ -92,7 +92,7 @@ public class KinectMe extends PApplet {
                 return v;
             }
         }
-
+        return null;
     }
 
     public void appearEvent(SkeletonData _s) {
