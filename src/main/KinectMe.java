@@ -5,6 +5,7 @@ import edu.ufl.digitalworlds.j4k.PSkeleton;
 import edu.ufl.digitalworlds.j4k.Skeleton;
 import kinect.JKinect;
 import kinect.Kinect;
+import kinect.KinectEnum;
 import kinect4WinSDK.SkeletonData;
 import object.Material;
 import object.Object;
@@ -14,7 +15,6 @@ import processing.core.PVector;
 
 public class KinectMe extends PApplet {
     private Kinect kinect;
-    private JKinect jKinect;
     private PShape ironmanModel;
     private Material ironmanMat;
     private Object ironman;
@@ -31,9 +31,8 @@ public class KinectMe extends PApplet {
         smooth();
         stroke(255);
 
-        jKinect = new JKinect(this, PKinect.XYZ|PKinect.COLOR|PKinect.UV|PKinect.SKELETON);
-//        jKinect.getPKinect().setNearMode(true);
-
+        kinect = new Kinect(this, null, null, null);
+        kinect.doSkeleton(true);
 
         ironmanModel = loadShape("res/model/ironman/IronMan.obj");
         ironmanModel.scale(.002f);
@@ -45,54 +44,8 @@ public class KinectMe extends PApplet {
     @Override
     public void draw() {
         background(0);
-        noLights();
 
-        jKinect.getPKinect().setFrustum();
-
-        //Simple rotation of the 3D scene using the mouse
-        translate(0,0,-2);
-        rotateX(radians((mouseY * 1f / height - .5f) * 180));
-        rotateY(radians((mouseX * 1f / width - .5f) * 180));
-        translate(0,0,2);
-
-
-        jKinect.draw3DSkeleton();
-
-        PVector pos = jointPos(Skeleton.HEAD);
-
-        System.out.println(jKinect.getPKinect().getMaxNumberOfSkeletons());
-        PSkeleton s = jKinect.getPSkeleton(jKinect.getPKinect().getMaxNumberOfSkeletons() - 1);
-        System.out.println("X1 : " + s.get3DJointX(Skeleton.HEAD)
-                + ", Y1 : " + s.get3DJointY(Skeleton.HEAD)
-                + ", Z1 : " + s.get3DJointZ(Skeleton.HEAD));
-
-        /*s = jKinect.getPSkeleton(0);
-        System.out.println("X2 : " + s.get3DJointX(Skeleton.HEAD)
-                + ", Y2 : " + s.get3DJointY(Skeleton.HEAD)
-                + ", Z2 : " + s.get3DJointZ(Skeleton.HEAD));*/
-
-        /*double[] x1 = jKinect.getSkeletons()[PSkeleton.HEAD].get3DJoint(PSkeleton.HEAD);
-        float x = jKinect.getSkeletons()[PSkeleton.HIP_LEFT].get3DJointX(0);
-        float y = jKinect.getSkeletons()[PSkeleton.HIP_LEFT].get3DJointY(0);
-        float z = jKinect.getSkeletons()[PSkeleton.HIP_LEFT].get3DJointZ(0);
-        System.out.println("X: " + x + " Y: " + y + " Z: " + z);
-        ironman.setPos(new PVector(x,y,z));
-        ironman.refresh();*/
-
-    }
-
-    private PVector jointPos(int jointID) {
-        PSkeleton[] skeletons = jKinect.getPSkeletons();
-        for (int skeleton_id = 0; skeleton_id < jKinect.getPKinect().getMaxNumberOfSkeletons() - 1; skeleton_id++) {
-            PSkeleton s = skeletons[skeleton_id];
-            if (s.isTracked()) {
-                PVector v = new PVector(s.get3DJointX(jointID),
-                        s.get3DJointY(jointID),
-                        s.get3DJointZ(jointID));
-                return v;
-            }
-        }
-        return null;
+        kinect.refresh(KinectEnum.RGB);
     }
 
     public void appearEvent(SkeletonData _s) {
