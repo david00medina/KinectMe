@@ -45,22 +45,26 @@ public class KinectMe extends PApplet {
     @Override
     public void draw() {
         background(0);
+        noLights();
 
         jKinect.getPKinect().setFrustum();
 
         //Simple rotation of the 3D scene using the mouse
-        /*translate(0,0,-2);
+        translate(0,0,-2);
         rotateX(radians((mouseY * 1f / height - .5f) * 180));
         rotateY(radians((mouseX * 1f / width - .5f) * 180));
-        translate(0,0,2);*/
+        translate(0,0,2);
 
 
         jKinect.draw3DSkeleton();
 
-        PVector pos = jointPos(Skeleton.HAND_RIGHT);
+        PVector pos = jointPos(Skeleton.HEAD);
 
-        System.out.println(pos);
-
+        System.out.println(jKinect.getPKinect().getMaxNumberOfSkeletons());
+        PSkeleton s = jKinect.getPSkeleton(jKinect.getPKinect().getMaxNumberOfSkeletons() - 1);
+        System.out.println("X1 : " + s.get3DJointX(Skeleton.HEAD)
+                + ", Y1 : " + s.get3DJointY(Skeleton.HEAD)
+                + ", Z1 : " + s.get3DJointZ(Skeleton.HEAD));
 
         /*s = jKinect.getPSkeleton(0);
         System.out.println("X2 : " + s.get3DJointX(Skeleton.HEAD)
@@ -71,10 +75,9 @@ public class KinectMe extends PApplet {
         float x = jKinect.getSkeletons()[PSkeleton.HIP_LEFT].get3DJointX(0);
         float y = jKinect.getSkeletons()[PSkeleton.HIP_LEFT].get3DJointY(0);
         float z = jKinect.getSkeletons()[PSkeleton.HIP_LEFT].get3DJointZ(0);
-        System.out.println("X: " + x + " Y: " + y + " Z: " + z);*/
-        if (pos != null) ironman.setPos(new PVector((int)pos.x, (int)pos.y, (int)pos.z));
-        line(0.f, height / 2.f, width, -2, height / 2.f, -2);
-        ironman.refresh();
+        System.out.println("X: " + x + " Y: " + y + " Z: " + z);
+        ironman.setPos(new PVector(x,y,z));
+        ironman.refresh();*/
 
     }
 
@@ -85,11 +88,11 @@ public class KinectMe extends PApplet {
             if (s.isTracked()) {
                 PVector v = new PVector(s.get3DJointX(jointID),
                         s.get3DJointY(jointID),
-                        -s.get3DJointZ(jointID));
+                        s.get3DJointZ(jointID));
                 return v;
             }
         }
-        return null;
+
     }
 
     public void appearEvent(SkeletonData _s) {
