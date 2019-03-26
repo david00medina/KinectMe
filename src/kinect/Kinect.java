@@ -24,6 +24,9 @@ public class Kinect {
 
     private List<Openpose> opNetwork;
 
+    private final int xOffset = -15;
+    private final int yOffset = 30;
+
     public Kinect(PApplet parent, PVector pos, Float scale, Float[] skeletonRGB) {
         this.parent = parent;
         kinect = new kinect4WinSDK.Kinect(this.parent);
@@ -56,25 +59,34 @@ public class Kinect {
         opNetwork.add(op);
     }
 
-    public void refresh(KinectEnum selector) {
+    public void refresh(KinectEnum selector, boolean onScreen) {
         switch (selector) {
             case RGB:
                 img = kinect.GetImage();
-                parent.image(img,
-                        pos.x, pos.y,
-                        640 * scale,480 * scale);
+
+                if (onScreen) {
+                    parent.image(img,
+                            pos.x, pos.y,
+                            640 * scale, 480 * scale);
+                }
                 break;
             case DEPTH:
                 img = kinect.GetDepth();
-                parent.image(img,
-                        pos.x, pos.y,
-                        640 * scale,480 * scale);
+
+                if (onScreen) {
+                    parent.image(img,
+                            pos.x, pos.y,
+                            640 * scale, 480 * scale);
+                }
                 break;
             case MASK:
                 img = kinect.GetMask();
-                parent.image(img,
-                        pos.x, pos.y,
-                        640 * scale,480 * scale);
+
+                if (onScreen) {
+                    parent.image(img,
+                            pos.x, pos.y,
+                            640 * scale, 480 * scale);
+                }
                 break;
             default:
                 break;
@@ -83,7 +95,7 @@ public class Kinect {
         // Calibrates skeleton to Cam
         if (KinectEnum.RGB.equals(selector)) {
             parent.pushMatrix();
-            parent.translate(-15, 30);
+            parent.translate(xOffset, yOffset);
         }
 
         if(doSkeleton) bodyTracking();
@@ -101,18 +113,19 @@ public class Kinect {
     private void bodyTracking() {
         for (int i = 0; i < bodies.size(); i++) {
             drawSkeleton(bodies.get(i));
-            drawRightHand(bodies.get(i));
+            drawHand(bodies.get(i), kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_HAND_RIGHT);
+            drawHand(bodies.get(i), kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_HAND_LEFT);
         }
     }
 
-    private void drawRightHand(SkeletonData _s) {
+    private void drawHand(SkeletonData _s, int jointID) {
         parent.pushStyle();
         parent.fill(255,0,0,50);
         //Detectada
-        if (_s.skeletonPositionTrackingState[kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_HAND_RIGHT]!= kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_NOT_TRACKED)
+        if (_s.skeletonPositionTrackingState[jointID]!= kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_NOT_TRACKED)
         {
-            parent.ellipse(_s.skeletonPositions[kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_HAND_RIGHT].x * parent.width,
-                    _s.skeletonPositions[kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_HAND_RIGHT].y * parent.height,
+            parent.ellipse(_s.skeletonPositions[jointID].x * parent.width,
+                    _s.skeletonPositions[jointID].y * parent.height,
                     30,30);
         }
         parent.popStyle();
@@ -243,6 +256,18 @@ public class Kinect {
                     _s.skeletonPositions[_j2].y * parent.height);
         }
         parent.popStyle();
+    }
+
+    public PVector getJointPos(int jointID) {
+        for (int i = 0; i < bodies.size(); i++) {
+            if(bodies.get(i).skeletonPositionTrackingState[jointID] != kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_NOT_TRACKED) {
+                PVector v = new PVector(bodies.get(i).skeletonPositions[jointID].x * parent.width + xOffset,
+                        bodies.get(i).skeletonPositions[jointID].y * parent.height + yOffset,
+                        0);
+                return v;
+            }
+        }
+        return null;
     }
 
     public void appearEvent(SkeletonData _s) {
