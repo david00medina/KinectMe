@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="j4k">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/lib/j4k" />
+    </CLASSES>
+    <JAVADOC />
+    <NATIVE>
+      <root url="file://$PROJECT_DIR$/lib/j4k" />
+    </NATIVE>
+    <SOURCES />
+    <jarDirectory url="file://$PROJECT_DIR$/lib/j4k" recursive="false" />
+  </library>
+</component>

@@ -15,21 +15,13 @@ public abstract class Object {
     protected Material material;
     protected List<InteractiveVolume> interactions;
 
-    public Object(PApplet parent, PVector pos, PVector rotation, PShape model, Texture texture, Material material) {
+    public Object(PApplet parent, PShape model, Texture texture, Material material) {
         this.parent = parent;
 
-        this.pos = pos;
-        this.rotation = rotation;
+        this.pos = new PVector(0,0,0);
+        this.rotation = new PVector(0,0,0);
         this.model = model;
         this.texture = texture;
-        this.material = material;
-        interactions = new ArrayList<>();
-    }
-
-    public Object(PApplet parent, PVector pos, PShape model, Material material) {
-        this.parent = parent;
-        this.pos = pos;
-        this.model = model;
         this.material = material;
         interactions = new ArrayList<>();
     }
@@ -40,6 +32,14 @@ public abstract class Object {
 
     public void setPos(PVector pos) {
         this.pos = pos;
+    }
+
+    public PVector getRotation() {
+        return rotation;
+    }
+
+    public void setRotation(PVector rotation) {
+        this.rotation = rotation;
     }
 
     public Material getMaterial() {
@@ -74,6 +74,7 @@ public abstract class Object {
         if (material != null) material.refresh();
         if (texture != null) model.setTexture(texture.getTexture());
         setTransformations();
+        drawInteractionVolume();
     }
 
     /*private void translateModel() {
@@ -104,7 +105,7 @@ public abstract class Object {
 
     public abstract void drawInteractionVolume();
 
-    public abstract boolean touched(int id, PVector joint);
+    public abstract boolean touched(int id, PVector joint, int inRadius);
 
     public abstract void doDrawInteractionArea(boolean b);
 }

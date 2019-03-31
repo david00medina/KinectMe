@@ -1,5 +1,6 @@
 package kinect;
 
+import algorithms.Transformation;
 import kinect4WinSDK.SkeletonData;
 import openpose.Openpose;
 import processing.core.PApplet;
@@ -12,6 +13,8 @@ import java.util.List;
 public class Kinect {
     private PApplet parent;
 
+    private KinectSelector selector;
+
     private kinect4WinSDK.Kinect kinect;
     private ArrayList<SkeletonData> bodies;
     private PImage img;
@@ -19,6 +22,7 @@ public class Kinect {
     private PVector pos;
     private Float scale;
     private Float[] skeletonRGB;
+    private final int handRadius = 30;
 
     private boolean doSkeleton;
 
@@ -55,11 +59,17 @@ public class Kinect {
         return img;
     }
 
+    public int getHandRadius() {
+        return handRadius;
+    }
+
     public void addOPNetwork(Openpose op) {
         opNetwork.add(op);
     }
 
-    public void refresh(KinectEnum selector, boolean onScreen) {
+    public void refresh(KinectSelector selector, boolean onScreen) {
+        this.selector = selector;
+
         switch (selector) {
             case RGB:
                 img = kinect.GetImage();
@@ -93,7 +103,7 @@ public class Kinect {
         }
 
         // Calibrates skeleton to Cam
-        if (KinectEnum.RGB.equals(selector)) {
+        if (KinectSelector.RGB.equals(selector)) {
             parent.pushMatrix();
             parent.translate(xOffset, yOffset);
         }
@@ -107,7 +117,7 @@ public class Kinect {
             }
         }
 
-        if (KinectEnum.RGB.equals(selector)) parent.popMatrix();
+        if (KinectSelector.RGB.equals(selector)) parent.popMatrix();
     }
 
     private void bodyTracking() {
@@ -124,9 +134,11 @@ public class Kinect {
         //Detectada
         if (_s.skeletonPositionTrackingState[jointID]!= kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_NOT_TRACKED)
         {
-            parent.ellipse(_s.skeletonPositions[jointID].x * parent.width,
-                    _s.skeletonPositions[jointID].y * parent.height,
-                    30,30);
+            PVector handPos = getJointPos(jointID);
+            parent.pushMatrix();
+            parent.translate(handPos.x, handPos.y, handPos.z);
+            parent.sphere(handRadius);
+            parent.popMatrix();
         }
         parent.popStyle();
     }
@@ -136,9 +148,15 @@ public class Kinect {
         parent.noStroke();
         parent.fill(0, 100, 255);
 
+        PVector posLabel = getJointPos(SkeletonData.NUI_SKELETON_POSITION_SHOULDER_CENTER);
         String s1 = parent.str(_s.dwTrackingID);
-        parent.text(s1, _s.position.x * parent.width, _s.position.y * parent.height);
-        parent.popStyle();
+        if (posLabel != null) {
+            parent.pushMatrix();
+            parent.translate(0, 0, posLabel.z);
+            parent.text(s1, posLabel.x, posLabel.y);
+            parent.popMatrix();
+            parent.popStyle();
+        }
     }
 
     private void drawSkeleton(SkeletonData _s) {
@@ -250,10 +268,15 @@ public class Kinect {
         if (_s.skeletonPositionTrackingState[_j1] != kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_NOT_TRACKED &&
                 _s.skeletonPositionTrackingState[_j2] != kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_NOT_TRACKED) {
 
-            parent.line(_s.skeletonPositions[_j1].x * parent.width,
-                    _s.skeletonPositions[_j1].y * parent.height,
-                    _s.skeletonPositions[_j2].x * parent.width,
-                    _s.skeletonPositions[_j2].y * parent.height);
+            PVector joint1 = getJointPos(_j1);
+            PVector joint2 = getJointPos(_j2);
+
+            if (joint1 != null && joint2 != null) {
+                parent.line(joint1.x, joint1.y, joint1.z,
+                        joint2.x, joint2.y, joint2.z);
+
+            }
+
         }
         parent.popStyle();
     }
@@ -264,7 +287,7 @@ public class Kinect {
                 PVector v = new PVector(bodies.get(i).skeletonPositions[jointID].x * parent.width + xOffset,
                         bodies.get(i).skeletonPositions[jointID].y * parent.height + yOffset,
                         0);
-                return v;
+                return getJointDepth(v);
             }
         }
         return null;
@@ -305,5 +328,36 @@ public class Kinect {
 
     public void doSkeleton(boolean b) {
         doSkeleton = b;
+    }
+
+    private PVector getJointDepth(PVector joint) {
+        PImage depthImg = kinect.GetDepth();
+
+        PVector j = Transformation.translate(joint, -xOffset, -yOffset, 0);
+
+        int x = (int) j.x;
+        int y = (int) j.y;
+        int arrayPos = x + (y * depthImg.width) - 1;
+
+        if (arrayPos < 0 || arrayPos >= depthImg.pixels.length) return joint;
+
+        int depthData = depthImg.pixels[arrayPos];
+        /*PVector depthPixel = new PVector(depthData & 0xFF, (depthData >> 8) & 0xFF, (depthData >> 8) & 0xFF);
+        System.out.println(depthPixel);*/
+        float depth = parent.map(depthData & 0xFF, 130, 230, 0, 360);
+        joint.z = depth;
+        return joint;
+
+        /*parent.pushStyle();
+        parent.strokeWeight(5);
+        parent.stroke(parent.color(0, 255, 0));
+        parent.point(x, y);
+        parent.popStyle();
+        parent.loadPixels();
+        parent.pixels[x + (y * parent.width)] = parent.color(0, 255, 0);
+        for (int i = y * parent.width-600; i < y * parent.width-600; i++) {
+            parent.pixels[x+i] = parent.color(0,255,0);
+        }
+        parent.updatePixels();*/
     }
 }
