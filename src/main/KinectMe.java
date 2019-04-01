@@ -1,5 +1,8 @@
 package main;
 
+import algorithms.Transformation;
+import javafx.scene.transform.Transform;
+import javafx.scene.transform.Translate;
 import kinect.Kinect;
 import kinect.KinectAnathomy;
 import kinect.KinectSelector;
@@ -13,6 +16,7 @@ import processing.event.MouseEvent;
 
 public class KinectMe extends PApplet {
     private static final boolean DEBUG_AREAS = true;
+    private static final boolean DEBUG_VERTICES = true;
     private Kinect kinect;
     private Guitar guitar;
     private int mouseWheel;
@@ -42,22 +46,42 @@ public class KinectMe extends PApplet {
         guitar.setRotation(new PVector(radians(0), radians(0), radians(-120)));
         guitar.scale(55.f);
 
-        int xOffset = 5;
-        int yOffset = -80;
-        int zOffset = 0;
-        float xRotationOffset = radians(0);
-        float yRotationOffset = radians(0);
-        float zRotationOffset = radians(5);
-        InteractiveVolume ia = new InteractiveVolume(this, 50, 4, 8);
-        ia.setPos((int) guitar.getPos().x + xOffset,
-                (int) guitar.getPos().y + yOffset,
-                (int) guitar.getPos().z + zOffset);
-        ia.setRotation(guitar.getRotation().x + xRotationOffset,
-                guitar.getRotation().y + yRotationOffset,
-                guitar.getRotation().z + zRotationOffset);
-        guitar.getInteractions().add(ia);
+        float xOffsetNeck = 5;
+        float yOffsetNeck = -80;
+        float zOffsetNeck = 4;
+        float xRotationOffsetNeck = radians(0);
+        float yRotationOffsetNeck = radians(0);
+        float zRotationOffsetNeck = radians(5);
+        InteractiveVolume neck = new InteractiveVolume(this, "NECK", 50, 4, 4);
+        neck.setTranslationOffset(xOffsetNeck, yOffsetNeck, zOffsetNeck);
+        neck.setRotationOffset(xRotationOffsetNeck, yRotationOffsetNeck, zRotationOffsetNeck);
+        neck.setPos(guitar.getPos().x + xOffsetNeck,
+                guitar.getPos().y + yOffsetNeck,
+                guitar.getPos().z + zOffsetNeck);
+        neck.setRotation(guitar.getRotation().x + xRotationOffsetNeck,
+                guitar.getRotation().y + yRotationOffsetNeck,
+                guitar.getRotation().z + zRotationOffsetNeck);
+
+        float xOffsetStrings = 35;
+        float yOffsetStrings = -15;
+        float zOffsetStrings = 4;
+        float xRotationOffsetStrings = radians(0);
+        float yRotationOffsetStrings = radians(0);
+        float zRotationOffsetStrings = radians(5);
+        InteractiveVolume strings = new InteractiveVolume(this, "STRINGS", 20,4,6);
+        strings.setTranslationOffset(xOffsetStrings, yOffsetStrings, zOffsetStrings);
+        strings.setPos(guitar.getPos().x + xOffsetStrings,
+                guitar.getPos().y + yOffsetStrings,
+                guitar.getPos().z + zOffsetStrings);
+        strings.setRotation(guitar.getRotation().x + xRotationOffsetStrings,
+                guitar.getRotation().y + yRotationOffsetStrings,
+                guitar.getRotation().z + zRotationOffsetStrings);
+
+        guitar.getInteractions().add(neck);
+        guitar.getInteractions().add(strings);
 
         // TODO: Set true to debug
+        neck.setVisualizeVertices(DEBUG_VERTICES);
         guitar.doDrawInteractionArea(DEBUG_AREAS);
     }
 
@@ -74,24 +98,48 @@ public class KinectMe extends PApplet {
         lights();
 
         PVector v = guitar.getPos();
-        guitar.setPos(v);
-        guitar.refresh();
-        guitar.touched(KinectAnathomy.HAND_LEFT.getSkelId(),
-                kinect.getSkelPos(KinectAnathomy.HAND_LEFT),
+
+        PVector leftHandPos = kinect.getSkelPos(KinectAnathomy.HAND_LEFT);
+        PVector rightHandPos = kinect.getSkelPos(KinectAnathomy.HAND_RIGHT);
+        boolean isLeftHandTouched = guitar.touched(KinectAnathomy.HAND_LEFT.getSkelId(),
+                leftHandPos,
                 kinect.getHandRadius());
-        guitar.touched(KinectAnathomy.HAND_RIGHT.getSkelId(),
-                kinect.getSkelPos(KinectAnathomy.HAND_RIGHT),
+        boolean isRightHandTouched = guitar.touched(KinectAnathomy.HAND_RIGHT.getSkelId(),
+                rightHandPos,
                 kinect.getHandRadius());
 
-        /*if (headPos != null) {
-            pushMatrix();
-            translate(0, 0, -1);
-            PShape hatFrame = createShape(RECT, headPos.x - 80, headPos.y - 65, 144, 96);
-            hatFrame.setTexture(hat);
-            shape(hatFrame);
-            popMatrix();
-        }*/
-        //if (headPos != null) image(hatFrame, headPos.x - 80, headPos.y - 65,144,96);
+        if (isLeftHandTouched || isRightHandTouched) guitar.setTake(true);
+
+        if (guitar.isTake() && leftHandPos != null) {
+            PVector dist = leftHandPos.copy();
+            dist.sub(guitar.getLeftContactPoint());
+            guitar.setLeftContactPoint(guitar.getLeftContactPoint().add(dist));
+            guitar.setPos(guitar.getPos().add(dist));
+
+            moveGuitarInteractionVolume();
+
+            System.out.println("dP = " + dist);
+            System.out.println("CONTACT : " + guitar.getLeftContactPoint());
+            System.out.println("HAND : " + leftHandPos);
+            System.out.println("GUITAR = " + guitar.getPos());
+        } else if (guitar.isTake() && rightHandPos != null) {
+            PVector dist = rightHandPos.copy();
+            dist.sub(guitar.getRightContactPoint());
+            guitar.setRightContactPoint(guitar.getRightContactPoint().add(dist));
+            guitar.setPos(guitar.getPos().add(dist));
+
+            moveGuitarInteractionVolume();
+        }
+        guitar.refresh();
+    }
+
+    private void moveGuitarInteractionVolume() {
+        for (InteractiveVolume iv :
+                guitar.getInteractions()) {
+            iv.setPos(guitar.getPos().x, guitar.getPos().y, guitar.getPos().z);
+            PVector t = iv.getTranslationOffset();
+            iv.setTranslationOffset(t.x, t.y, t.z);
+        }
     }
 
     @Override

@@ -77,22 +77,6 @@ public abstract class Object {
         drawInteractionVolume();
     }
 
-    /*private void translateModel() {
-        for (int i = 0; i < model.getVertexCount(); i++) {
-            PVector v = model.getVertex(i);
-            model.setVertex(i, Transformation.translate(v, pos.x, pos.y, pos.z));
-        }
-    }
-
-    private void rotateModel() {
-        for (int i = 0; i < model.getVertexCount(); i++) {
-            PVector v = model.getVertex(i);
-            model.setVertex(i, Transformation.rotateX(v, rotation.x));
-            model.setVertex(i, Transformation.rotateY(v, rotation.y));
-            model.setVertex(i, Transformation.rotateY(v, rotation.z));
-        }
-    }*/
-
     private void setTransformations() {
         parent.pushMatrix();
         parent.translate(pos.x, pos.y, pos.z);

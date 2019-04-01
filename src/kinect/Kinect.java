@@ -263,14 +263,13 @@ public class Kinect {
                 parent.fill(255,0,0,50);
                 parent.pushMatrix();
                 parent.translate(joint2.x, joint2.y, joint2.z);
-                parent.sphereDetail(15);
-                parent.sphere(handRadius);
+                /*parent.sphereDetail(15);
+                parent.sphere(handRadius);*/
 //                parent.ellipse(joint2.x, joint2.y, handRadius, handRadius);
                 parent.popMatrix();
                 parent.popStyle();
             }
         }
-
 
         parent.popStyle();
     }

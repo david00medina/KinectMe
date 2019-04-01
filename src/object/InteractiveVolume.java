@@ -6,8 +6,11 @@ import processing.core.*;
 
 public class InteractiveVolume {
     private PApplet parent;
+    private String id;
     private PVector pos;
     private PVector rotation;
+    private PVector translationOffset;
+    private PVector rotationOffset;
 
     public PVector centroid;
     public float width;
@@ -17,16 +20,28 @@ public class InteractiveVolume {
 
     private PShape volume;
     private int[] rgb;
+    private boolean watchVertices = false;
 
-    public InteractiveVolume(PApplet parent, float width, float height, float depth) {
+    public InteractiveVolume(PApplet parent, String id, float width, float height, float depth) {
         this.parent = parent;
-        rotation = new PVector(0,0,0);
+        this.id = id;
+
+        pos = new PVector();
+        rotation = new PVector();
 
         this.width = width;
         this.height = height;
         this.depth = depth;
+
+        translationOffset = new PVector();
+        rotationOffset = new PVector();
+
         generateBoxVolume();
         getCentroid();
+    }
+
+    public String getId() {
+        return id;
     }
 
     public PShape getVolume() {
@@ -37,7 +52,7 @@ public class InteractiveVolume {
         return pos;
     }
 
-    public void setPos(int x, int y, int z) {
+    public void setPos(float x, float y, float z) {
         pos = new PVector(x, y, z);
     }
 
@@ -129,13 +144,23 @@ public class InteractiveVolume {
     }
 
     public boolean isColliding(PVector joint, int inRadius) {
-        for (int i = 0; i < volume.getVertexCount(); i++) {
+        if (joint == null || volume.getVertexCount() <= 0) return false;
+
+        int totalVertices = volume.getVertexCount();
+        float[] x = new float[totalVertices];
+        float[] y = new float[totalVertices];
+        float[] z = new float[totalVertices];
+
+        float xmax, xmin, ymax, ymin, zmax, zmin;
+
+        for (int i = 0; i < totalVertices; i++) {
             PVector v = volume.getVertex(i);
 
             PVector centroid = this.centroid.copy();
             centroid.add(pos.x, pos.y, pos.z);
+
             v = Transformation.translate(v, pos.x, pos.y, pos.z);
-            v = Transformation.superRotation(v.x, v.y, v.z, centroid.x, centroid.y, centroid.z, 0, 0, 1, rotation.z/*parent.map(parent.mouseX, 0, parent.width, 0, PConstants.TWO_PI)*/);
+            v = Transformation.superRotation(v.x, v.y, v.z, centroid.x, centroid.y, centroid.z, 0, 0, 1, rotation.z);
 
             parent.pushStyle();
             parent.strokeWeight(10);
@@ -143,21 +168,54 @@ public class InteractiveVolume {
             parent.point(centroid.x, centroid.y, centroid.z);
 
             // TODO: Temporal Method
-//            visualizeVertexAndHand(joint, v);
+            if (watchVertices) visualizeVertexAndHand(joint, v);
+
             parent.popStyle();
 
-            if (v != null && joint != null && PApplet.dist(v.x, v.y, v.z, joint.x, joint.y, joint.z) <= inRadius) {
-                return true;
-            }
+            x[i] = v.x;
+            y[i] = v.y;
+            z[i] = v.z;
         }
-        return false;
+
+        xmin = PApplet.min(x);
+        xmax = PApplet.max(x);
+        ymin = PApplet.min(y);
+        ymax = PApplet.max(y);
+        zmin = PApplet.min(z);
+        zmax = PApplet.max(z);
+
+        return (joint.x >= xmin && joint.x <= xmax) &&
+                (joint.y >= ymin && joint.y <= ymax) &&
+                (joint.z >= zmin && joint.z <= zmax);
     }
 
     private void visualizeVertexAndHand(PVector joint, PVector v) {
         parent.stroke(0, 0, 255);
-        // Vertices
         parent.point(v.x, v.y, v.z);
+
         // Hands
         if (joint != null) parent.point(joint.x, joint.y, joint.z);
+    }
+
+    public void setVisualizeVertices(boolean b) {
+        this.watchVertices = b;
+    }
+
+    public void setTranslationOffset(float x, float y, float z) {
+        translationOffset = new PVector(x, y, z);
+        setPos(pos.x + x, pos.y + y, pos.z + z);
+    }
+
+    public PVector getTranslationOffset() {
+        return translationOffset;
+    }
+
+    public  void setRotationOffset(float x, float y, float z) {
+        rotationOffset = new PVector(x, y, z);
+        setRotation(rotation.x + x, rotation.y + y, rotation.z + z);
+    }
+
+    public PVector getRotationOffset() {
+        return rotationOffset;
     }
 }
