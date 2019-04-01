@@ -1,6 +1,7 @@
 package main;
 
 import kinect.Kinect;
+import kinect.KinectAnathomy;
 import kinect.KinectSelector;
 import kinect4WinSDK.SkeletonData;
 import object.InteractiveVolume;
@@ -37,7 +38,7 @@ public class KinectMe extends PApplet {
         PShape guitarModel = loadShape("../../data/models/guitar/guitar.obj");
         guitar = new Guitar(this, guitarModel, null, null);
 
-        guitar.setPos(new PVector(70, 420, 0));
+        guitar.setPos(new PVector(70, 420, 15));
         guitar.setRotation(new PVector(radians(0), radians(0), radians(-120)));
         guitar.scale(55.f);
 
@@ -64,10 +65,8 @@ public class KinectMe extends PApplet {
     public void draw() {
         background(0);
 
-        translate(0,0,-2);
         rotateX(radians((mouseY * 1f / height - .5f) * 180.f));
         rotateY(radians((mouseX * 1f / width - .5f) * 180.f));
-        translate(0,0,2);
 
         kinect.doSkeleton(true);
         kinect.refresh(KinectSelector.NONE, true);
@@ -77,11 +76,11 @@ public class KinectMe extends PApplet {
         PVector v = guitar.getPos();
         guitar.setPos(v);
         guitar.refresh();
-        guitar.touched(SkeletonData.NUI_SKELETON_POSITION_HAND_LEFT,
-                kinect.getJointPos(SkeletonData.NUI_SKELETON_POSITION_HAND_LEFT),
+        guitar.touched(KinectAnathomy.HAND_LEFT.getSkelId(),
+                kinect.getSkelPos(KinectAnathomy.HAND_LEFT),
                 kinect.getHandRadius());
-        guitar.touched(SkeletonData.NUI_SKELETON_POSITION_HAND_RIGHT,
-                kinect.getJointPos(SkeletonData.NUI_SKELETON_POSITION_HAND_RIGHT),
+        guitar.touched(KinectAnathomy.HAND_RIGHT.getSkelId(),
+                kinect.getSkelPos(KinectAnathomy.HAND_RIGHT),
                 kinect.getHandRadius());
 
         /*if (headPos != null) {

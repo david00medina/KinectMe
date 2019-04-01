@@ -8,12 +8,12 @@ import processing.core.PImage;
 import processing.core.PVector;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Kinect {
     private PApplet parent;
-
-    private KinectSelector selector;
 
     private kinect4WinSDK.Kinect kinect;
     private ArrayList<SkeletonData> bodies;
@@ -22,9 +22,10 @@ public class Kinect {
     private PVector pos;
     private Float scale;
     private Float[] skeletonRGB;
-    private final int handRadius = 30;
+    private final int handRadius = 15;
 
     private boolean doSkeleton;
+    private Map<KinectAnathomy, PVector> skelPositions;
 
     private List<Openpose> opNetwork;
 
@@ -44,6 +45,7 @@ public class Kinect {
         if (this.skeletonRGB == null) this.skeletonRGB = new Float[]{255.f, 255.f, .0f};
 
         opNetwork = new ArrayList<>();
+        skelPositions = new HashMap<>();
         doSkeleton = false;
     }
 
@@ -63,13 +65,20 @@ public class Kinect {
         return handRadius;
     }
 
+    public PVector getSkelPos(KinectAnathomy ka) {
+        for (int i = 0; i < bodies.size(); i++) {
+            PVector v = skelPositions.get(ka);
+
+            if (v != null) return v;
+        }
+        return null;
+    }
+
     public void addOPNetwork(Openpose op) {
         opNetwork.add(op);
     }
 
     public void refresh(KinectSelector selector, boolean onScreen) {
-        this.selector = selector;
-
         switch (selector) {
             case RGB:
                 img = kinect.GetImage();
@@ -123,24 +132,7 @@ public class Kinect {
     private void bodyTracking() {
         for (int i = 0; i < bodies.size(); i++) {
             drawSkeleton(bodies.get(i));
-            drawHand(bodies.get(i), kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_HAND_RIGHT);
-            drawHand(bodies.get(i), kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_HAND_LEFT);
         }
-    }
-
-    private void drawHand(SkeletonData _s, int jointID) {
-        parent.pushStyle();
-        parent.fill(255,0,0,50);
-        //Detectada
-        if (_s.skeletonPositionTrackingState[jointID]!= kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_NOT_TRACKED)
-        {
-            PVector handPos = getJointPos(jointID);
-            parent.pushMatrix();
-            parent.translate(handPos.x, handPos.y, handPos.z);
-            parent.sphere(handRadius);
-            parent.popMatrix();
-        }
-        parent.popStyle();
     }
 
     private void drawPosition(SkeletonData _s) {
@@ -148,8 +140,10 @@ public class Kinect {
         parent.noStroke();
         parent.fill(0, 100, 255);
 
-        PVector posLabel = getJointPos(SkeletonData.NUI_SKELETON_POSITION_SHOULDER_CENTER);
+        PVector posLabel = skelPositions.get(KinectAnathomy.LABEL);
+
         String s1 = parent.str(_s.dwTrackingID);
+
         if (posLabel != null) {
             parent.pushMatrix();
             parent.translate(0, 0, posLabel.z);
@@ -160,137 +154,125 @@ public class Kinect {
     }
 
     private void drawSkeleton(SkeletonData _s) {
+        collectPoints(_s);
+
         // Cuerpo
-        drawBody(_s);
+        drawBody();
 
         // Brazo izquierdo
-        drawLeftArm(_s);
+        drawLeftArm();
 
         // Brazo derecho
-        drawRightArm(_s);
+        drawRightArm();
 
         // Pierna izquierda
-        drawLeftLeg(_s);
+        drawLeftLeg();
 
         // Pierna derecha
-        drawRightLeg(_s);
+        drawRightLeg();
 
         drawPosition(_s);
     }
 
-    private void drawRightLeg(SkeletonData _s) {
-        DrawBone(_s,
-                kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_HIP_RIGHT,
-                kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_KNEE_RIGHT);
-        DrawBone(_s,
-                kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_KNEE_RIGHT,
-                kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_ANKLE_RIGHT);
-        DrawBone(_s,
-                kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_ANKLE_RIGHT,
-                kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_FOOT_RIGHT);
+    private void collectPoints(SkeletonData _s) {
+        PImage depthImg = kinect.GetDepth();
+        for (KinectAnathomy ka :
+                KinectAnathomy.values()) {
+            skelPositions.put(ka, ka.getJointPos(_s, depthImg, parent.width, parent.height, xOffset, yOffset, skelPositions.get(ka)));
+        }
     }
 
-    private void drawLeftLeg(SkeletonData _s) {
-        DrawBone(_s,
-                kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_HIP_LEFT,
-                kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_KNEE_LEFT);
-        DrawBone(_s,
-                kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_KNEE_LEFT,
-                kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_ANKLE_LEFT);
-        DrawBone(_s,
-                kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_ANKLE_LEFT,
-                kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_FOOT_LEFT);
+    private void drawRightLeg() {
+        DrawBone(KinectAnathomy.HIP_RIGHT,
+                KinectAnathomy.KNEE_RIGHT);
+        DrawBone(KinectAnathomy.KNEE_RIGHT,
+                KinectAnathomy.ANKLE_RIGHT);
+        DrawBone(KinectAnathomy.ANKLE_RIGHT,
+                KinectAnathomy.FOOT_RIGHT);
     }
 
-    private void drawRightArm(SkeletonData _s) {
-        DrawBone(_s,
-                kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_SHOULDER_RIGHT,
-                kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_ELBOW_RIGHT);
-        DrawBone(_s,
-                kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_ELBOW_RIGHT,
-                kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_WRIST_RIGHT);
-        DrawBone(_s,
-                kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_WRIST_RIGHT,
-                kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_HAND_RIGHT);
+    private void drawLeftLeg() {
+        DrawBone(KinectAnathomy.HIP_LEFT,
+                KinectAnathomy.KNEE_LEFT);
+        DrawBone(KinectAnathomy.KNEE_LEFT,
+                KinectAnathomy.ANKLE_LEFT);
+        DrawBone(KinectAnathomy.ANKLE_LEFT,
+                KinectAnathomy.FOOT_LEFT);
     }
 
-    private void drawLeftArm(SkeletonData _s) {
-        DrawBone(_s,
-                kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_SHOULDER_LEFT,
-                kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_ELBOW_LEFT);
-        DrawBone(_s,
-                kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_ELBOW_LEFT,
-                kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_WRIST_LEFT);
-        DrawBone(_s,
-                kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_WRIST_LEFT,
-                kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_HAND_LEFT);
+    private void drawRightArm() {
+        DrawBone(KinectAnathomy.SHOULDER_RIGHT,
+                KinectAnathomy.ELBOW_RIGHT);
+        DrawBone(KinectAnathomy.ELBOW_RIGHT,
+                KinectAnathomy.WRIST_RIGHT);
+        DrawBone(KinectAnathomy.WRIST_RIGHT,
+                KinectAnathomy.HAND_RIGHT);
     }
 
-    private void drawBody(SkeletonData _s) {
-        DrawBone(_s,
-                kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_HEAD,
-                kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_SHOULDER_CENTER);
-        DrawBone(_s,
-                kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_SHOULDER_CENTER,
-                kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_SHOULDER_LEFT);
-        DrawBone(_s,
-                kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_SHOULDER_CENTER,
-                kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_SHOULDER_RIGHT);
-        DrawBone(_s,
-                kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_SHOULDER_CENTER,
-                kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_SPINE);
-        DrawBone(_s,
-                kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_SHOULDER_LEFT,
-                kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_SPINE);
-        DrawBone(_s,
-                kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_SHOULDER_RIGHT,
-                kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_SPINE);
-        DrawBone(_s,
-                kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_SPINE,
-                kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_HIP_CENTER);
-        DrawBone(_s,
-                kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_HIP_CENTER,
-                kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_HIP_LEFT);
-        DrawBone(_s,
-                kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_HIP_CENTER,
-                kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_HIP_RIGHT);
-        DrawBone(_s,
-                kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_HIP_LEFT,
-                kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_HIP_RIGHT);
+    private void drawLeftArm() {
+        DrawBone(KinectAnathomy.SHOULDER_LEFT,
+                KinectAnathomy.ELBOW_LEFT);
+        DrawBone(KinectAnathomy.ELBOW_LEFT,
+                KinectAnathomy.WRIST_LEFT);
+        DrawBone(KinectAnathomy.WRIST_LEFT,
+                KinectAnathomy.HAND_LEFT);
     }
 
-    private void DrawBone(SkeletonData _s, int _j1, int _j2) {
+    private void drawBody() {
+        DrawBone(KinectAnathomy.HEAD,
+                KinectAnathomy.SHOULDER_CENTER);
+        DrawBone(KinectAnathomy.SHOULDER_CENTER,
+                KinectAnathomy.SHOULDER_LEFT);
+        DrawBone(KinectAnathomy.SHOULDER_CENTER,
+                KinectAnathomy.SHOULDER_RIGHT);
+        DrawBone(KinectAnathomy.SHOULDER_CENTER,
+                KinectAnathomy.SPINE);
+        DrawBone(KinectAnathomy.SHOULDER_LEFT,
+                KinectAnathomy.SPINE);
+        DrawBone(KinectAnathomy.SHOULDER_RIGHT,
+                KinectAnathomy.SPINE);
+        DrawBone(KinectAnathomy.SPINE,
+                KinectAnathomy.HIP_CENTER);
+        DrawBone(KinectAnathomy.HIP_CENTER,
+                KinectAnathomy.HIP_LEFT);
+        DrawBone(KinectAnathomy.HIP_CENTER,
+                KinectAnathomy.HIP_RIGHT);
+        DrawBone(KinectAnathomy.HIP_LEFT,
+                KinectAnathomy.HIP_RIGHT);
+    }
+
+    private void DrawBone(KinectAnathomy _j1, KinectAnathomy _j2) {
         parent.pushStyle();
         parent.noFill();
         parent.stroke(skeletonRGB[0], skeletonRGB[1], skeletonRGB[2]);
 
-        //Comprueba validez del dato
-        if (_s.skeletonPositionTrackingState[_j1] != kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_NOT_TRACKED &&
-                _s.skeletonPositionTrackingState[_j2] != kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_NOT_TRACKED) {
-
-            PVector joint1 = getJointPos(_j1);
-            PVector joint2 = getJointPos(_j2);
-
-            if (joint1 != null && joint2 != null) {
-                parent.line(joint1.x, joint1.y, joint1.z,
-                        joint2.x, joint2.y, joint2.z);
-
-            }
-
+        int i = 0;
+        if (KinectAnathomy.HIP_CENTER.equals(_j1) && KinectAnathomy.HIP_LEFT.equals(_j2)) {
+            i = 1;
         }
+
+        PVector joint1 = skelPositions.get(_j1);
+        PVector joint2 = skelPositions.get(_j2);
+
+        if (joint1 != null && joint2 != null) {
+            parent.line(joint1.x, joint1.y, joint1.z,
+                    joint2.x, joint2.y, joint2.z);
+
+            if (KinectAnathomy.HAND_LEFT.equals(_j2) || KinectAnathomy.HAND_RIGHT.equals(_j2)) {
+                parent.pushStyle();
+                parent.fill(255,0,0,50);
+                parent.pushMatrix();
+                parent.translate(joint2.x, joint2.y, joint2.z);
+                parent.sphereDetail(15);
+                parent.sphere(handRadius);
+//                parent.ellipse(joint2.x, joint2.y, handRadius, handRadius);
+                parent.popMatrix();
+                parent.popStyle();
+            }
+        }
+
+
         parent.popStyle();
-    }
-
-    public PVector getJointPos(int jointID) {
-        for (int i = 0; i < bodies.size(); i++) {
-            if(bodies.get(i).skeletonPositionTrackingState[jointID] != kinect4WinSDK.Kinect.NUI_SKELETON_POSITION_NOT_TRACKED) {
-                PVector v = new PVector(bodies.get(i).skeletonPositions[jointID].x * parent.width + xOffset,
-                        bodies.get(i).skeletonPositions[jointID].y * parent.height + yOffset,
-                        0);
-                return getJointDepth(v);
-            }
-        }
-        return null;
     }
 
     public void appearEvent(SkeletonData _s) {
@@ -328,36 +310,5 @@ public class Kinect {
 
     public void doSkeleton(boolean b) {
         doSkeleton = b;
-    }
-
-    private PVector getJointDepth(PVector joint) {
-        PImage depthImg = kinect.GetDepth();
-
-        PVector j = Transformation.translate(joint, -xOffset, -yOffset, 0);
-
-        int x = (int) j.x;
-        int y = (int) j.y;
-        int arrayPos = x + (y * depthImg.width) - 1;
-
-        if (arrayPos < 0 || arrayPos >= depthImg.pixels.length) return joint;
-
-        int depthData = depthImg.pixels[arrayPos];
-        /*PVector depthPixel = new PVector(depthData & 0xFF, (depthData >> 8) & 0xFF, (depthData >> 8) & 0xFF);
-        System.out.println(depthPixel);*/
-        float depth = parent.map(depthData & 0xFF, 130, 230, 0, 360);
-        joint.z = depth;
-        return joint;
-
-        /*parent.pushStyle();
-        parent.strokeWeight(5);
-        parent.stroke(parent.color(0, 255, 0));
-        parent.point(x, y);
-        parent.popStyle();
-        parent.loadPixels();
-        parent.pixels[x + (y * parent.width)] = parent.color(0, 255, 0);
-        for (int i = y * parent.width-600; i < y * parent.width-600; i++) {
-            parent.pixels[x+i] = parent.color(0,255,0);
-        }
-        parent.updatePixels();*/
     }
 }
