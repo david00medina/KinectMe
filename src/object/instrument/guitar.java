@@ -1,7 +1,5 @@
 package object.instrument;
 
-import algorithms.Transformation;
-import kinect4WinSDK.SkeletonData;
 import object.InteractiveVolume;
 import object.Material;
 import object.Object;
@@ -12,51 +10,51 @@ import processing.core.PVector;
 
 public class Guitar extends Object {
     private boolean doDrawInteractions;
-    private boolean istouchedRight = false;
-    private boolean istouchedLeft = false;
+    private boolean take = false;
+    private boolean play = false;
 
     public Guitar(PApplet parent, PShape model, Texture texture, Material material) {
         super(parent, model, texture, material);
     }
 
-    public boolean touched(int id, PVector joint, int inRadius) {
+    public void touched(int id, PVector joint, int inRadius) {
         for (InteractiveVolume iv :
                 interactions) {
-            iv.setRGB(255, 0, 0);
+            if (iv.isColliding(id, joint, inRadius)) {
 
-            if (iv.isColliding(joint, inRadius)) {
-                if (id == SkeletonData.NUI_SKELETON_POSITION_HAND_LEFT) {
-                    istouchedLeft = true;
-                } else if (id == SkeletonData.NUI_SKELETON_POSITION_HAND_RIGHT) {
-                    istouchedRight = true;
+                if ("NECK".equals(iv.getId())) {
+                    if (iv.isTouchedLeft())
+                        iv.setContactPoint(joint.copy());
+                    else if (iv.isTouchedRight())
+                        iv.setContactPoint(joint.copy());
+
+                    take = true;
                 }
+
             } else {
-                if (id == SkeletonData.NUI_SKELETON_POSITION_HAND_LEFT) {
-                    istouchedLeft = false;
-                } else if (id == SkeletonData.NUI_SKELETON_POSITION_HAND_RIGHT) {
-                    istouchedRight = false;
-                }
-            }
+                if ("NECK".equals(iv.getId()) && joint != null) {
+                    if (take && !iv.isTouchedLeft()) {
+                        moveToJoint(iv, joint);
+                        take = false;
 
-            if (istouchedLeft || istouchedRight) {
-                iv.setRGB(0, 255, 0);
-                return true;
+                    } else if (take && !iv.isTouchedRight()) {
+                        moveToJoint(iv, joint);
+                        take = false;
+                    }
+                }
             }
         }
-
-        return false;
     }
 
-    // TODO: Temporal method
-    private void visualizeVertexAndHand(PVector joint, PVector v) {
-        parent.pushStyle();
-        parent.strokeWeight(10);
-        parent.stroke(0, 0, 255);
-        // Vertices
-        parent.point(v.x, v.y, v.z);
-        // Hands
-        if (joint != null) parent.point(joint.x, joint.y, joint.z);
-        parent.popStyle();
+    public void moveToJoint(InteractiveVolume iv, PVector joint) {
+        System.out.println("HAND : " + joint);
+        System.out.println("CONTACT PREV : " + iv.getContactPoint());
+        PVector dist = joint.copy().sub(iv.getContactPoint());
+        System.out.println("DIST : " + dist);
+        this.setPos(pos.add(dist));
+        System.out.println("GUITAR : " + pos);
+        iv.setContactPoint(joint);
+        System.out.println("CONTACT POST : " + iv.getContactPoint());
     }
 
     @Override
@@ -64,8 +62,7 @@ public class Guitar extends Object {
         if (doDrawInteractions) {
             for (InteractiveVolume iv :
                     interactions) {
-//                iv.setRotation(PApplet.radians(0), PApplet.radians(0), PApplet.map(parent.mouseX, 0, parent.width, 0, PConstants.TWO_PI));
-                iv.drawInteractionVolume();
+                iv.refresh();
             }
         }
     }
@@ -73,5 +70,13 @@ public class Guitar extends Object {
     @Override
     public void doDrawInteractionArea(boolean b) {
         doDrawInteractions = b;
+    }
+
+    public boolean isTake() {
+        return take;
+    }
+
+    public boolean isPlay() {
+        return play;
     }
 }

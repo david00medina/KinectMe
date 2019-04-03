@@ -32,6 +32,10 @@ public abstract class Object {
 
     public void setPos(PVector pos) {
         this.pos = pos;
+        for (InteractiveVolume iv :
+                interactions) {
+            iv.setPos(pos.x, pos.y, pos.z);
+        }
     }
 
     public PVector getRotation() {
@@ -40,6 +44,10 @@ public abstract class Object {
 
     public void setRotation(PVector rotation) {
         this.rotation = rotation;
+        for (InteractiveVolume iv :
+                interactions) {
+            iv.setRotation(rotation.x, rotation.y, rotation.z);
+        }
     }
 
     public Material getMaterial() {
@@ -89,7 +97,7 @@ public abstract class Object {
 
     public abstract void drawInteractionVolume();
 
-    public abstract boolean touched(int id, PVector joint, int inRadius);
+    public abstract void touched(int id, PVector joint, int inRadius);
 
     public abstract void doDrawInteractionArea(boolean b);
 }
