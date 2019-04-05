@@ -91,8 +91,6 @@ public class KinectMe extends PApplet {
         background(0);
 
         setCamera();
-        /*rotateX(radians((mouseY * 1f / height - .5f) * 180.f));
-        rotateY(radians((mouseX * 1f / width - .5f) * 180.f));*/
 
         kinect.doSkeleton(false);
         kinect.refresh(KinectSelector.NONE, true);
