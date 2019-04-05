@@ -88,14 +88,6 @@ public class InteractiveVolume {
         return isTouchedRight;
     }
 
-    public int[] getRGB() {
-        return rgb;
-    }
-
-    public void setRGB(int r, int g, int b) {
-        this.rgb = new int[]{ r, g, b };
-    }
-
     private void generateBoxVolume() {
         parent.rectMode(PConstants.CENTER);
         volume = parent.createShape();
@@ -150,7 +142,7 @@ public class InteractiveVolume {
         parent.popMatrix();
     }
 
-    public PVector getCentroid() {
+    private PVector getCentroid() {
         float x = 0;
         float y = 0;
         float z = 0;
@@ -169,19 +161,7 @@ public class InteractiveVolume {
     }
 
     public boolean isColliding(int id, PVector joint, int inRadius) {
-        if (joint == null || volume.getVertexCount() <= 0) {
-            switch (id) {
-                case SkeletonData.NUI_SKELETON_POSITION_HAND_LEFT:
-                    isTouchedLeft = false;
-                    break;
-                case SkeletonData.NUI_SKELETON_POSITION_HAND_RIGHT:
-                    isTouchedRight = false;
-                    break;
-                default:
-                    break;
-            }
-            return false;
-        }
+        if (joint == null || volume.getVertexCount() <= 0) return isTouched(id, false);
 
         int totalVertices = volume.getVertexCount();
         float[] x = new float[totalVertices];
@@ -191,7 +171,7 @@ public class InteractiveVolume {
         float xmax, xmin, ymax, ymin, zmax, zmin;
 
         for (int i = 0; i < totalVertices; i++) {
-            PVector v = volume.getVertex(i);
+            PVector v = volume.getVertex(i).copy();
 
             centroid = getCentroid();
 

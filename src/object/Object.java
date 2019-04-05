@@ -82,7 +82,7 @@ public abstract class Object {
         if (material != null) material.refresh();
         if (texture != null) model.setTexture(texture.getTexture());
         setTransformations();
-        drawInteractionVolume();
+        updateGuitarState();
     }
 
     private void setTransformations() {
@@ -95,7 +95,7 @@ public abstract class Object {
         parent.popMatrix();
     }
 
-    public abstract void drawInteractionVolume();
+    public abstract void updateGuitarState();
 
     public abstract void touched(int id, PVector joint, int inRadius);
 

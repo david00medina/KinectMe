@@ -1,5 +1,6 @@
 package main;
 
+import algorithms.Transformation;
 import kinect.Kinect;
 import kinect.KinectAnathomy;
 import kinect.KinectSelector;
@@ -7,15 +8,23 @@ import kinect4WinSDK.SkeletonData;
 import object.InteractiveVolume;
 import object.instrument.Guitar;
 import processing.core.PApplet;
+import processing.core.PConstants;
 import processing.core.PShape;
 import processing.core.PVector;
 import processing.event.MouseEvent;
+import soundFX.OscillatorSelector;
+import soundFX.SoundFX;
 
 public class KinectMe extends PApplet {
     private static final boolean DEBUG_AREAS = true;
     private static final boolean DEBUG_VERTICES = true;
+    private static final int SCALE = 60;
+    private static final int COLS = 60;
+    private static final int ROWS = 60;
+
     private Kinect kinect;
     private Guitar guitar;
+    private PShape floor;
     private int mouseWheel;
 
     @Override
@@ -33,13 +42,15 @@ public class KinectMe extends PApplet {
         kinect = new Kinect(this, null, null, null);
 
         spawnGuitar();
+
+        createFloor();
     }
 
     private void spawnGuitar() {
         PShape guitarModel = loadShape("../../data/models/guitar/guitar.obj");
         guitar = new Guitar(this, guitarModel, null, null);
 
-        guitar.setPos(new PVector(70, 420, 50));
+        guitar.setPos(new PVector(width / 2.f, 4.f * height / 6.f, 150));
         guitar.setRotation(new PVector(radians(0), radians(0), radians(-140)));
         guitar.scale(55.f);
 
@@ -79,8 +90,12 @@ public class KinectMe extends PApplet {
     public void draw() {
         background(0);
 
-        rotateX(radians((mouseY * 1f / height - .5f) * 180.f));
-        rotateY(radians((mouseX * 1f / width - .5f) * 180.f));
+        setCamera();
+        /*rotateX(radians((mouseY * 1f / height - .5f) * 180.f));
+        rotateY(radians((mouseX * 1f / width - .5f) * 180.f));*/
+
+        kinect.doSkeleton(false);
+        kinect.refresh(KinectSelector.NONE, true);
 
         kinect.doSkeleton(true);
         kinect.refresh(KinectSelector.NONE, true);
@@ -88,6 +103,44 @@ public class KinectMe extends PApplet {
         lights();
 
         guitarInteraction();
+
+        makeFloor();
+    }
+
+    private void setCamera() {
+        PVector spine = kinect.getSkelPos(KinectAnathomy.SPINE);
+
+        if (spine != null) {
+            PVector camPos = new PVector(width/2.f,
+                    height/2.f,
+                    (height/2.f) / tan(PI * 30.f / 180.f));
+
+            camera(camPos.x, camPos.y, camPos.z,
+                    spine.x, spine.y, spine.z,
+                    0,1, 0);
+        }
+    }
+
+    private void makeFloor() {
+        pushMatrix();
+        translate(-ROWS * SCALE / 2.f, 400, -COLS * SCALE /2.f);
+        shape(floor);
+        popMatrix();
+    }
+
+    private void createFloor() {
+        stroke(255);
+        noFill();
+
+        floor = createShape();
+        for (int z = 0; z < COLS; z++) {
+            floor.beginShape(QUAD_STRIP);
+            for (int x = 0; x < ROWS; x++) {
+                floor.vertex(x * SCALE, 0, z * SCALE);
+                floor.vertex(x * SCALE, 0, (z+1) * SCALE);
+            }
+            floor.endShape();
+        }
     }
 
     private void guitarInteraction() {
