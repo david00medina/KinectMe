@@ -7,9 +7,6 @@ import processing.core.PApplet;
 import processing.core.PImage;
 import processing.core.PVector;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public enum KinectAnathomy {
     HEAD(0, Kinect.NUI_SKELETON_POSITION_HEAD),
     SHOULDER_CENTER(1, Kinect.NUI_SKELETON_POSITION_SHOULDER_CENTER),

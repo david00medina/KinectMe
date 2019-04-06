@@ -70,6 +70,7 @@
 		\item Librería \textit{Kinect4WinSDK} \cite{kinect4winsdk}.
 		\item Librería \textit{Sound} \cite{sound-library}.
 		\item Modelo \textit{OBJ} de una guitarra eléctrica \cite{3d-guitar-model}.
+		\item \textit{Kinect v1.8} \cite{kinect-sdk}
 	\end{itemize}
 	
 	\section{Método}
@@ -169,17 +170,17 @@
 	\subsubsection{Enumerado \texttt{KinectAnathomy}}
 	Este enumerado identifica los diferentes puntos de articulación detectados por la \textit{Kinect v1.8}.
 	
-	\lstinputlisting[language=Java, firstline=14, lastline=51]{../src/kinect/KinectAnathomy.java}
+	\lstinputlisting[language=Java, firstline=11, lastline=48]{../src/kinect/KinectAnathomy.java}
 	
 	Las coordenadas de cada punto de articulación --incluida la profundidad-- son calculadas en el método \texttt{getJointPos()}.
 	
-	\lstinputlisting[language=Java, firstline=53, lastline=61]{../src/kinect/KinectAnathomy.java}
+	\lstinputlisting[language=Java, firstline=50, lastline=58]{../src/kinect/KinectAnathomy.java}
 	
 	El cálculo de la profundidad se obtiene a partir de la imagen en blanco y negro que devuelve la librería \texttt{Kinect4WinSDK} tras llamar a la primitiva \texttt{GetDepth()}.
 	
 	Para establecer la profundidad de cada punto de articulación se analiza cada uno de los píxeles de la imagen devuelta por \texttt{GetDepth()} y se toma el byte menos significativo. Posteriormente, se comprueba que el valor del byte se encuentre en el rango umbral del intervalo $\left[ 100, 250\right]$. El rango de profundidad se establece en el intervalo $\left[ 0, 360\right]$ y se asigna este valor al punto de articulación correspondiente.
 	
-	\lstinputlisting[language=Java, firstline=63, lastline=85]{../src/kinect/KinectAnathomy.java}
+	\lstinputlisting[language=Java, firstline=60, lastline=82]{../src/kinect/KinectAnathomy.java}
 	
 	
 	\subsubsection{Enumerado \texttt{KinectSelector}}
@@ -283,7 +284,7 @@
 	
 	\lstinputlisting[language=Java, firstline=208, lastline=224]{../src/object/InteractiveVolume.java}
 	
-	Si se desea visualizar los vértices y el centroide del volumen de interacción y el punto de articulación de las manos se llama al método privado \texttt{visualizeVertexAndHand}.
+	Si se desea visualizar los vértices y el centroide del volumen de interacción y el punto de articulación de las manos se llama al método privado \texttt{visualizeVertexAndHand()}.
 	
 	\lstinputlisting[language=Java, firstline=226, lastline=232]{../src/object/InteractiveVolume.java}
 	
@@ -308,15 +309,15 @@
 	
 	En el caso de que se deje de interactuar con el volumen de las cuerdas, se detendrá la reproducción del sonido generado por la guitarra.
 	
-	\lstinputlisting[language=Java, firstline=26, lastline=66]{../src/object/InteractiveVolume.java}
+	\lstinputlisting[language=Java, firstline=26, lastline=66]{../src/object/instrument/Guitar.java}
 	
 	El método privado que permite mover la guitarra en bloque hacia el punto de articulación de la mano cuando se deja de tocar el cuello de la guitarra es \texttt{moveToJoint()}.
 	
-	\lstinputlisting[language=Java, firstline=68, lastline=72]{../src/object/InteractiveVolume.java}
+	\lstinputlisting[language=Java, firstline=68, lastline=72]{../src/object/instrument/Guitar.java}
 	
 	El método público \texttt{updateState()} permite actualizar la posición y rotación de los volúmenes de interacción asociados a la guitarra.
 	
-	\lstinputlisting[language=Java, firstline=74, lastline=82]{../src/object/InteractiveVolume.java}
+	\lstinputlisting[language=Java, firstline=74, lastline=82]{../src/object/instrument/Guitar.java}
 	
 	\subsection{Paquete \texttt{sounFX}}
 	\subsubsection{Clase \texttt{SoundFX}}
@@ -324,16 +325,16 @@
 	
 	Si se quiere generar un sonido, se debe pasar al método \texttt{play()} el selector de oscilador que se desea utilizar para reproducir el sonido así como un número \texttt{float} que inidique la frecuencia del mismo. Cada vez que se llama a este método se asigna a 0 el valor de \texttt{sustain} que permite que la nota se siga sonando después de un cierto tiempo tras llamar al método \texttt{stop()}.
 	
-	\lstinputlisting[language=Java, firstline=39, lastline=68]{../src/soundFX/SoundFX.java}
+	\lstinputlisting[language=Java, firstline=33, lastline=62]{../src/soundFX/SoundFX.java}
 	
 	El método \texttt{stop()} permite detener el sonido una vez campo \texttt{sustain} haya alcanzado el umbral definido por \texttt{SUSTAIN\_TIME}.
 	
-	\lstinputlisting[language=Java, firstline=70, lastline=95]{../src/soundFX/SoundFX.java}
+	\lstinputlisting[language=Java, firstline=64, lastline=89]{../src/soundFX/SoundFX.java}
 	
 	\subsubsection{Enumerado \texttt{OscillatorSelector}}
 	Este enumerado permite seleccionar entre los diferentes tipos de osciladores disponibles por la librería \texttt{Sound} para generar sonido.
 	
-	\lstinputlisting[language=Java, firstline=3, lastline=9]{../src/soundFX/SoundFX.java}
+	\lstinputlisting[language=Java, firstline=3, lastline=9]{../src/soundFX/OscillatorSelector.java}
 	
 	\chapter{Resultados y Discusión}
 	El algoritmo integrado de seguimiento de cuerpo que dispone la \texttt{Kinect v1.8} ha permitido establecer una nube de puntos de referencia a partir de los cuales ha sido posible seguir la posición en 2D de los puntos de articulación del cuerpo. 
@@ -346,7 +347,7 @@
 		
 	\begin{figure}[h]
 		\centering
-		\includegraphics[width=0.9\textwidth]{KinectMe.png}
+		\includegraphics[width=0.9\textwidth]{KinectMe.jpg}
 		\caption{Espacio virtual desde el que se puede interaccionar utilizando el algoritmo de detección de cuerpos de la \textit{Kinect}}
 	\end{figure}
 	
