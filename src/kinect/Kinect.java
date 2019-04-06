@@ -19,7 +19,7 @@ public class Kinect {
     private PVector pos;
     private Float scale;
     private Float[] skeletonRGB;
-    private final int handRadius = 15;
+    private int handRadius = 15;
 
     private boolean doSkeleton;
     private Map<KinectAnathomy, PVector> skelPositions;
@@ -53,6 +53,10 @@ public class Kinect {
 
     public PImage getImg() {
         return img;
+    }
+
+    public void setHandRadius(int radius) {
+        this.handRadius = handRadius;
     }
 
     public int getHandRadius() {
@@ -139,19 +143,19 @@ public class Kinect {
     private void drawSkeleton(SkeletonData _s) {
         collectPoints(_s);
 
-        // Cuerpo
+        // Body
         drawBody();
 
-        // Brazo izquierdo
+        // Left Arm
         drawLeftArm();
 
-        // Brazo derecho
+        // Right Arm
         drawRightArm();
 
-        // Pierna izquierda
+        // Left Leg
         drawLeftLeg();
 
-        // Pierna derecha
+        // Right Leg
         drawRightLeg();
 
         drawPosition(_s);

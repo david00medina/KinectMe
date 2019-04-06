@@ -34,6 +34,7 @@ public class KinectMe extends PApplet {
         stroke(255);
 
         kinect = new Kinect(this, null, null, null);
+        kinect.setHandRadius(0);
 
         spawnGuitar();
 
