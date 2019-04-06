@@ -16,4 +16,9 @@ en _TEX_ y sus referencias en _BIB_.
 ## Ejecución del archivo _JAR_ compilado
 Se dispone de un archivo binario llamado _KinectMe.jar_ que 
 permite ejecutar el proyecto ya compilado. Se debe ejecutar el archivo
-_KinectMe.jar_ dentro del directorio raíz del proyecto.
+_KinectMe.jar_ dentro del directorio raíz del proyecto. 
+
+Ejecutar el siguiente comando por consola:
+
+  `java -jar -Djava.library.path=lib\kinect4winsdk KinectMe.jar`
+  

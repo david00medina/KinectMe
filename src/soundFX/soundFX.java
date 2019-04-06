@@ -12,8 +12,6 @@ public class SoundFX {
     private SawOsc sawOsc;
     private SqrOsc sqrOsc;
     private TriOsc triOsc;
-    private Env env;
-    private Minim minim;
 
     private static final int SUSTAIN_TIME = 100;
     private int sustain;
@@ -28,10 +26,6 @@ public class SoundFX {
         sawOsc = new SawOsc(parent);
         sqrOsc = new SqrOsc(parent);
         triOsc = new TriOsc(parent);
-
-        env = new Env(parent);
-
-        minim = new Minim(parent);
 
         sustain = 0;
     }
