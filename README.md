@@ -4,6 +4,8 @@ Se hace uso de la _Kinect v1.8_ y sus sensores IR
 para implementar un prototipo de aplicación de realidad 
 aumentada con profundiad.
 
+![](doc/kinectme.gif)
+
 ## Estructura del proyecto
 Este proyecto está estructurado en los siguientes directorios:
 * data. Contiene los modelos utilizados en este proyecto
