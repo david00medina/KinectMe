@@ -11,7 +11,6 @@ import processing.core.PApplet;
 import processing.core.PConstants;
 import processing.core.PShape;
 import processing.core.PVector;
-import processing.event.MouseEvent;
 import soundFX.OscillatorSelector;
 import soundFX.SoundFX;
 
@@ -25,7 +24,6 @@ public class KinectMe extends PApplet {
     private Kinect kinect;
     private Guitar guitar;
     private PShape floor;
-    private int mouseWheel;
 
     @Override
     public void settings() {
@@ -62,7 +60,6 @@ public class KinectMe extends PApplet {
                 radians(0), radians(0), radians(5),
                 20, 4, 6);
 
-        // TODO: Set true to debug
         guitar.doDrawInteractionArea(DEBUG_AREAS);
     }
 
@@ -91,9 +88,6 @@ public class KinectMe extends PApplet {
         background(0);
 
         setCamera();
-
-        kinect.doSkeleton(false);
-        kinect.refresh(KinectSelector.NONE, true);
 
         kinect.doSkeleton(true);
         kinect.refresh(KinectSelector.NONE, true);
@@ -154,13 +148,6 @@ public class KinectMe extends PApplet {
                 kinect.getHandRadius());
 
         guitar.refresh();
-    }
-
-    @Override
-    public void mouseWheel(MouseEvent event) {
-        super.mouseWheel(event);
-        mouseWheel += event.getCount();
-        System.out.println("WHEEL : " + mouseWheel);
     }
 
     public void appearEvent(SkeletonData _s) {
