@@ -2,7 +2,7 @@
 ## Descripción
 Se hace uso de la _Kinect v1.8_ y sus sensores IR 
 para implementar un prototipo de aplicación de realidad 
-aumentada con profundiad.
+aumentada con profundidad.
 
 ![](doc/kinectme.gif)
 
