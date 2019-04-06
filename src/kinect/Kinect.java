@@ -1,15 +1,12 @@
 package kinect;
 
-import algorithms.Transformation;
 import kinect4WinSDK.SkeletonData;
-import openpose.Openpose;
 import processing.core.PApplet;
 import processing.core.PImage;
 import processing.core.PVector;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class Kinect {
@@ -27,8 +24,6 @@ public class Kinect {
     private boolean doSkeleton;
     private Map<KinectAnathomy, PVector> skelPositions;
 
-    private List<Openpose> opNetwork;
-
     private final int xOffset = -15;
     private final int yOffset = 30;
 
@@ -44,7 +39,6 @@ public class Kinect {
         if (this.scale == null) this.scale = 1.f;
         if (this.skeletonRGB == null) this.skeletonRGB = new Float[]{255.f, 255.f, .0f};
 
-        opNetwork = new ArrayList<>();
         skelPositions = new HashMap<>();
         doSkeleton = false;
     }
@@ -72,10 +66,6 @@ public class Kinect {
             if (v != null) return v;
         }
         return null;
-    }
-
-    public void addOPNetwork(Openpose op) {
-        opNetwork.add(op);
     }
 
     public void refresh(KinectSelector selector, boolean onScreen) {
@@ -118,13 +108,6 @@ public class Kinect {
         }
 
         if(doSkeleton) bodyTracking();
-
-        if(opNetwork != null && opNetwork.size() != 0) {
-            for (Openpose op :
-                    opNetwork) {
-                op.makeInference(img);
-            }
-        }
 
         if (KinectSelector.RGB.equals(selector)) parent.popMatrix();
     }

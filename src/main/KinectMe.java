@@ -1,6 +1,5 @@
 package main;
 
-import algorithms.Transformation;
 import kinect.Kinect;
 import kinect.KinectAnathomy;
 import kinect.KinectSelector;
@@ -8,11 +7,8 @@ import kinect4WinSDK.SkeletonData;
 import object.InteractiveVolume;
 import object.instrument.Guitar;
 import processing.core.PApplet;
-import processing.core.PConstants;
 import processing.core.PShape;
 import processing.core.PVector;
-import soundFX.OscillatorSelector;
-import soundFX.SoundFX;
 
 public class KinectMe extends PApplet {
     private static final boolean DEBUG_AREAS = true;
