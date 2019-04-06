@@ -1,0 +1,161 @@
+\documentclass[10pt,a4paper]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{makeidx}
+\usepackage{graphicx}
+\usepackage{titlesec}
+\usepackage{sectsty}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{apacite}
+
+\titleformat{\chapter}[display]
+{\normalfont\bfseries}{}{0pt}{\Large}
+\chaptertitlefont{\Huge}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+	backgroundcolor=\color{backcolour},   
+	commentstyle=\color{codegreen},
+	keywordstyle=\color{magenta},
+	numberstyle=\tiny\color{codegray},
+	stringstyle=\color{codepurple},
+	basicstyle=\footnotesize,
+	breakatwhitespace=false,         
+	breaklines=true,                 
+	captionpos=b,                    
+	keepspaces=true,                 
+	numbers=left,                    
+	numbersep=5pt,                  
+	showspaces=false,                
+	showstringspaces=false,
+	showtabs=false,                  
+	tabsize=2,
+	frame=lines
+}
+
+\lstset{style=mystyle}
+
+\author{David Alberto Medina Medina
+	\\
+	Dr. Modesto Fernando Castrillon Santana}
+\title{Práctica 6 y 7 - Procesamiento de imagen y video, y síntesis de sonido}
+\begin{document}
+	\maketitle
+	\tableofcontents
+	\bibliographystyle{apacite}
+	\chapter{Introducción}
+	\textit{Processing} es un es un IDE \textit{opensource} que utiliza \textit{Java} como lenguaje de programación. Este proyecto está desarrollado y mantenido por la \textit{Processing Foundation} que sirve como soporte de aprendizaje para instruir a estudiantes de todo el mundo en el mundo de la codificación dentro del contexto de las artes visuales.
+	
+	El objetivo de esta experiencia consite en desarrollar una aplicación de realidad aumentada desde la cual se puede interactuar con objetos virtuales en un espacio tridimensional y generar audio a partir de ellos. El modelo de una guitarra eléctrica es elegido en un intento de ilustrar esta funcionalidad. 
+	
+	En la escena se muestra la estructura de un esqueleto humano resultado de un algoritmo de seguimiento del cuerpo que procesa la \textit{Kinect v1.8} obteniendo como resultado la información de los puntos de articulación del mismo \cite{kinect-controller}. 
+	
+	La \textit{Kinect} solo ofrece la posición de cada punto de articulación en el plano XY por lo que es necesario analizar la información que de los sensores IR si queremos conocer la profundidad de cada uno de los puntos de articulación que conforman el esqueleto.
+	
+	\chapter{Método y materiales}
+	\section{Materiales}
+	El desarrollo de este proyecto se ha llevado a cabo utilizando el IDE de desarrollo de aplicaciones \textit{Java} de \textit{JetBrains}, \textit{IntelliJ}, y las siguientes herramientas:
+	\begin{itemize}
+		\item Librería \textit{Processing} \cite{processing-javadoc}.
+		\item Librería \textit{Kinect4WinSDK} \cite{kinect4winsdk}.
+		\item Librería \textit{Sound} \cite{sound-library}.
+		\item Modelo \textit{OBJ} de una guitarra eléctrica \cite{3d-guitar-model}.
+	\end{itemize}
+	
+	\section{Método}
+	Las siguientes clases que se definenen en este documente se organizan en los siguientes paquetes:
+	\begin{enumerate}
+		\item main
+		\item kinect
+		\item soundFX
+		\item object
+		\item algorithms
+	\end{enumerate}
+
+	\subsection{Paquete \texttt{main}}
+	\subsubsection{Clase \texttt{KinectMe}}
+	Para poder utilizar las primitivas de \textit{Processing} esta clase debe heredar de \texttt{PApplet}. Para iniciar una aplicación de \textit{Processing}, el método estático \texttt{main()} debe llamar a la primitiva \texttt{PApplet.main()} para indicar el nombre de la clase principal desde la cual se llama y sobrescriben los métodos primitivos: \texttt{settings(), setup()} y \texttt{draw()}.
+	
+	\lstinputlisting[language=Java, firstline=169, lastline=171]{../src/main/KinectMe.java}
+	
+	El método primitivo \texttt{settings()} establece el tamaño de la pantalla llamando al método \texttt{size()} y pasándole la marca del renderizador de gráficos 3D (\texttt{P3D}).
+	
+	\lstinputlisting[language=Java, firstline=28, lastline=32]{../src/main/KinectMe.java}
+	
+	El método \texttt{setup()} inicializa un objeto de la clase \texttt{Kinect} que se utiliza como controlador de la misma. Además, se llama al método \texttt{spawnGuitar()} responsable del renderizado y puesta en escena de una guitarra que será el objeto tridimensional por medio del cual el usuario puede interactuar. El método \texttt{createFloor()} permite visualizar una rejilla que será utilizada como suelo de la escena.
+	
+	\lstinputlisting[language=Java, firstline=34, lastline=45]{../src/main/KinectMe.java}
+	
+	El método privado \texttt{spawnGuitar()} carga el modelo 3D de la guitarra y le asigna una posición en la escena. El método \texttt{doDrawInteractionArea()} permite visualizar los volúmenes de interacción asociados a la guitarra si ajustamos el parámetro \texttt{DEBUG\_AREAS} a \texttt{true}.
+	
+	A continuación, se llama al método privado \texttt{addGuitarInteraction()} para generar los ortoedros de interacción a partir de los cuales el usuario puede interacturar con la guitarra. Se generan dos volúmenes de interacción: uno para el cuello y el otro para las cuerdas de la guitarra. Es posible visualizar los vértices de estos ortoedros si se establece el parámetro de configuración \texttt{DEBUG\_VERTICES} a \texttt{true}.
+	
+	\lstinputlisting[language=Java, firstline=47, lastline=85]{../src/main/KinectMe.java}
+	
+	El método primitivo \texttt{draw()} refresca los elementos de la escena y son mostrados por pantalla para su visualización. 
+	
+	\lstinputlisting[language=Java, firstline=86, lastline=103]{../src/main/KinectMe.java}	
+	
+	En primer lugar, se establece al posición de la cámara en función de la posición del punto de articulación de la columna del esqueleto detectado por la \textit{Kinect} al llamar al método \texttt{setCamera()}.
+	
+	\lstinputlisting[language=Java, firstline=105, lastline=117]{../src/main/KinectMe.java}
+	
+	\subsection{Paquete \texttt{object}}
+	\subsubsection{Clase \texttt{Object}}\label{class:object}
+	En esta clase se define el método principal que heredará de la clase \texttt{PApplet} de \textit{Processing} con el objeto de poder acceder a todas las primitivas de la librería. El método principal debe llamar al método \texttt{PApplet.main()} para poder empezar a utilizar \textit{Processing}.
+	
+	\lstinputlisting[language=Java, firstline=162, lastline=164]{../src/object/Object.java}
+	
+	Se definen el tamaño de la ventana y se selecciona el \textit{rederer} \texttt{P3D}.
+	
+	\lstinputlisting[language=Java, firstline=20, lastline=22]{../src/object/Object.java}
+	
+	Se inicializan la cámara, la iluminación, el jugador y los objetos que forman parte de la escena. 
+	
+	\lstinputlisting[language=Java, firstline=24, lastline=36]{../src/object/Object.java}
+	
+	El método \texttt{placeMouseCenter()} coloca el ratón en el centro de la ventana y se oculta llamando a la primitiva \texttt{noCursor()}.
+	
+	\lstinputlisting[language=Java, firstline=152, lastline=160]{../src/object/Object.java}
+	
+	El método \texttt{spawnObjects()} es el responsable de renderizar todos los objetos del mundo y cargar las texturas y materiales de cada uno de ellos según corresponda. Este método llama a su vez a: \texttt{renderFloor(), renderStar(), renderCandle(), renderTable()} y \texttt{renderWall()}.
+	
+	\lstinputlisting[language=Java, firstline=38, lastline=97]{../src/object/Object.java}
+	
+	Una vez realizados los ajustes previos, se carga en la ventana todos los componentes de los objetos de la escena haciendo uso de las primitivas \texttt{pushMatrix()} y \texttt{popMatrix()}. En cada iteración del método \texttt{draw()} se refresca el estado del jugador y se ajustan los parámetros de iluminación.
+	
+	\lstinputlisting[language=Java, firstline=99, lastline=136]{../src/object/Object.java} 
+	
+	Los parámetros de iluminación son gestionados en el método \texttt{lightSetting()} donde se podrá encender o apagar el iluminado haciendo clic derecho en el ratón. Cuando la iluminación genérica no está habilitada, se establecen los parámetros de iluminación básicos de la escena: ambiente, direccional, especular y punto-luz (\textit{point-light}).
+	
+	\lstinputlisting[language=Java, firstline=138, lastline=150]{../src/object/Object.java} 
+	
+	
+	\subsubsection{Clase \texttt{Texture}}
+	Esta clase es la responsable de almacenar las texturas de una instancia del objeto \texttt{SceneObject}.
+	
+	\lstinputlisting[language=Java, firstline=6, lastline=18]{../src/object/Texture.java}
+	
+	\subsubsection{Clase \texttt{Material}}
+	Esta clase es la responsable de gestionar los parámetros de los materiales que son utilizados por los objetos de la escena. Estos parámetros controlan cómo se comporta cada objeto de la escena ante la luz. El método \texttt{refresh()} es el responsable de llamar a las primitivas en cada iteración.
+	
+	\lstinputlisting[language=Java, firstline=14, lastline=63]{../src/object/Material.java}
+	
+	
+	\chapter{Conclusiones}	
+	En esta experiencia hemos aprendido a manipular la vista del mundo con las primitivas \texttt{camara()} y \texttt{perspective()} de \textit{Processing}. Hemos aprendido a manipular los parámetros de iluminación y materiales con el objeto de obtener escenas con un iluminado personalizado.
+	
+	Se ha intentado ver cómo afecta a la iluminación de los objetos la luz ambiental. Este parámetro cambia su posición a lo largo del tiempo, siguiendo la posición de la pequeña esfera del escenario. Se puede observar este cambio influye en la iluminación de los objetos de la escena.
+	
+	\bibliography{Report-6-7}
+\end{document}
