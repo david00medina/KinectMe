@@ -50,6 +50,14 @@ public abstract class Object {
         }
     }
 
+    public PShape getModel() {
+        return model;
+    }
+
+    public void setModel(PShape model) {
+        this.model = model;
+    }
+
     public Material getMaterial() {
         return material;
     }
@@ -58,12 +66,12 @@ public abstract class Object {
         this.material = material;
     }
 
-    public PShape getModel() {
-        return model;
+    public Texture getTexture() {
+        return texture;
     }
 
-    public void setModel(PShape model) {
-        this.model = model;
+    public void setTexture(Texture texture) {
+        this.texture = texture;
     }
 
     public List<InteractiveVolume> getInteractions() {
@@ -82,7 +90,7 @@ public abstract class Object {
         if (material != null) material.refresh();
         if (texture != null) model.setTexture(texture.getTexture());
         setTransformations();
-        updateGuitarState();
+        updateState();
     }
 
     private void setTransformations() {
@@ -95,9 +103,9 @@ public abstract class Object {
         parent.popMatrix();
     }
 
-    public abstract void updateGuitarState();
+    public abstract void updateState();
 
     public abstract void touched(int id, PVector joint, int inRadius);
 
-    public abstract void doDrawInteractionArea(boolean b);
+    public abstract void doDrawInteractionVolume(boolean b);
 }

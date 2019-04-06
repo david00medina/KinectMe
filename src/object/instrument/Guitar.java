@@ -39,7 +39,7 @@ public class Guitar extends Object {
                     }
 
                 } else if ("STRINGS".equals(iv.getId())) {
-                    soundFX.play(OscillatorSelector.TRIANGULAR, joint.y);
+                    soundFX.play(OscillatorSelector.TRIANGULAR, (float) Math.sqrt(joint.x * joint.x + joint.y * joint.y + joint.z * joint.z));
                 }
 
             } else {
@@ -66,18 +66,13 @@ public class Guitar extends Object {
     }
 
     private void moveToJoint(InteractiveVolume iv, PVector joint) {
-        /*System.out.println("HAND : " + joint);
-        System.out.println("CONTACT PREV : " + iv.getContactPoint());*/
         PVector dist = joint.copy().sub(iv.getContactPoint());
-//        System.out.println("DIST : " + dist);
         this.setPos(pos.add(dist));
-//        System.out.println("GUITAR : " + pos);
         iv.setContactPoint(joint);
-//        System.out.println("CONTACT POST : " + iv.getContactPoint());
     }
 
     @Override
-    public void updateGuitarState() {
+    public void updateState() {
         if (doDrawInteractions) {
             for (InteractiveVolume iv :
                     interactions) {
@@ -87,7 +82,7 @@ public class Guitar extends Object {
     }
 
     @Override
-    public void doDrawInteractionArea(boolean b) {
+    public void doDrawInteractionVolume(boolean b) {
         doDrawInteractions = b;
     }
 }

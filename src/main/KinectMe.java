@@ -34,7 +34,7 @@ public class KinectMe extends PApplet {
         stroke(255);
 
         kinect = new Kinect(this, null, null, null);
-        kinect.setHandRadius(0);
+        kinect.setHandRadius(10);
 
         spawnGuitar();
 
@@ -57,7 +57,7 @@ public class KinectMe extends PApplet {
                 radians(0), radians(0), radians(5),
                 20, 4, 6);
 
-        guitar.doDrawInteractionArea(DEBUG_AREAS);
+        guitar.doDrawInteractionVolume(DEBUG_AREAS);
     }
 
     private void addGuitarInteraction(String id, float xOffset, float yOffset, float zOffset,

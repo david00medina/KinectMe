@@ -55,7 +55,7 @@ public class Kinect {
         return img;
     }
 
-    public void setHandRadius(int radius) {
+    public void setHandRadius(int handRadius) {
         this.handRadius = handRadius;
     }
 
@@ -122,24 +122,6 @@ public class Kinect {
         }
     }
 
-    private void drawPosition(SkeletonData _s) {
-        parent.pushStyle();
-        parent.noStroke();
-        parent.fill(0, 100, 255);
-
-        PVector posLabel = skelPositions.get(KinectAnathomy.LABEL);
-
-        String s1 = parent.str(_s.dwTrackingID);
-
-        if (posLabel != null) {
-            parent.pushMatrix();
-            parent.translate(0, 0, posLabel.z);
-            parent.text(s1, posLabel.x, posLabel.y);
-            parent.popMatrix();
-            parent.popStyle();
-        }
-    }
-
     private void drawSkeleton(SkeletonData _s) {
         collectPoints(_s);
 
@@ -159,6 +141,24 @@ public class Kinect {
         drawRightLeg();
 
         drawPosition(_s);
+    }
+
+    private void drawPosition(SkeletonData _s) {
+        parent.pushStyle();
+        parent.noStroke();
+        parent.fill(0, 100, 255);
+
+        PVector posLabel = skelPositions.get(KinectAnathomy.LABEL);
+
+        String s1 = parent.str(_s.dwTrackingID);
+
+        if (posLabel != null) {
+            parent.pushMatrix();
+            parent.translate(0, 0, posLabel.z);
+            parent.text(s1, posLabel.x, posLabel.y);
+            parent.popMatrix();
+            parent.popStyle();
+        }
     }
 
     private void collectPoints(SkeletonData _s) {
@@ -245,14 +245,14 @@ public class Kinect {
             parent.line(joint1.x, joint1.y, joint1.z,
                     joint2.x, joint2.y, joint2.z);
 
-            if (KinectAnathomy.HAND_LEFT.equals(_j2) || KinectAnathomy.HAND_RIGHT.equals(_j2)) {
+            if ((KinectAnathomy.HAND_LEFT.equals(_j2) || KinectAnathomy.HAND_RIGHT.equals(_j2))
+                    && handRadius > 0) {
                 parent.pushStyle();
                 parent.fill(255,0,0,50);
                 parent.pushMatrix();
                 parent.translate(joint2.x, joint2.y, joint2.z);
-                /*parent.sphereDetail(15);
-                parent.sphere(handRadius);*/
-//                parent.ellipse(joint2.x, joint2.y, handRadius, handRadius);
+                parent.sphereDetail(15);
+                parent.sphere(handRadius);
                 parent.popMatrix();
                 parent.popStyle();
             }

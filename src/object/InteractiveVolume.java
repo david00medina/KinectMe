@@ -183,7 +183,6 @@ public class InteractiveVolume {
             parent.stroke(255, 0, 0);
             parent.point(centroid.x, centroid.y, centroid.z);
 
-            // TODO: Temporal Method
             if (watchVertices) visualizeVertexAndHand(joint, v);
 
             parent.popStyle();

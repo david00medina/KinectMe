@@ -51,8 +51,7 @@ public enum KinectAnathomy {
     }
 
     public PVector getJointPos(SkeletonData _s, PImage depthImg, float width, float height, float xOffset, float yOffset, PVector original) {
-        if (/*this.skelID != KinectAnathomy.NOT_TRACKED.skelID &&*/
-                _s.skeletonPositionTrackingState[this.skelID] != KinectAnathomy.NOT_TRACKED.skelID) {
+        if (_s.skeletonPositionTrackingState[this.skelID] != KinectAnathomy.NOT_TRACKED.skelID) {
             PVector v = new PVector(_s.skeletonPositions[this.skelID].x * width + xOffset,
                     _s.skeletonPositions[this.skelID].y * height + yOffset,
                     0);
